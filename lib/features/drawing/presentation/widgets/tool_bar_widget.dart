@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:drawing_app/features/drawing/presentation/providers/drawing_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,9 +14,20 @@ class ToolBarWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final drawingState = ref.watch(drawingProvider);
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16.0),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+        child: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(16.0),
+            border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
         IconButton(
           icon: const Icon(Icons.undo),
           onPressed: () {
@@ -153,6 +165,9 @@ class ToolBarWidget extends ConsumerWidget {
           },
         ),
       ],
+    ),
+  ),
+),
     );
   }
 }
