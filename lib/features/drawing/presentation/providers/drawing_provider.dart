@@ -5,31 +5,45 @@ import 'drawing_state.dart';
 import '../../domain/entities/drawing_stroke.dart';
 import 'dart:typed_data';
 
-final drawingProvider = StateNotifierProvider<DrawingNotifier, DrawingState>((ref) {
-  return DrawingNotifier();
-});
+final drawingProvider = NotifierProvider<DrawingNotifier, DrawingState>(DrawingNotifier.new);
 
-class DrawingNotifier extends StateNotifier<DrawingState> {
-  DrawingNotifier() : super(DrawingState());
+class DrawingNotifier extends Notifier<DrawingState> {
+  @override
+  DrawingState build() {
+    return DrawingState();
+  }
 
-  List<Offset> _currentPoints = [];
   final List<DrawingStroke> _undoneStrokes = [];
 
   void addPoint(Offset? point) {
     if (point != null) {
-      _currentPoints.add(point);
+      state = state.copyWith(currentDrawingPoints: [...state.currentDrawingPoints, point]);
     } else {
-      if (_currentPoints.isNotEmpty) {
-        state = state.copyWith(strokes: [...state.strokes, DrawingStroke(points: List.from(_currentPoints), color: state.color, strokeWidth: state.strokeWidth)]);
-        _currentPoints = [];
+      if (state.currentDrawingPoints.isNotEmpty) {
+        state = state.copyWith(
+          strokes: [
+            ...state.strokes,
+            DrawingStroke(
+              points: List.from(state.currentDrawingPoints),
+              color: state.color,
+              strokeWidth: state.strokeWidth,
+              opacity: state.opacity,
+              blendMode: state.selectedTool == DrawingTool.eraser ? BlendMode.clear : state.blendMode,
+            ),
+          ],
+          currentDrawingPoints: [],
+        );
         _undoneStrokes.clear(); // Clear undone strokes when a new stroke is added
       }
     }
   }
 
+  void setSelectedTool(DrawingTool tool) {
+    state = state.copyWith(selectedTool: tool);
+  }
+
   void clear() {
-    state = state.copyWith(strokes: []);
-    _currentPoints = [];
+    state = state.copyWith(strokes: [], currentDrawingPoints: []);
     _undoneStrokes.clear();
   }
 
@@ -56,10 +70,6 @@ class DrawingNotifier extends StateNotifier<DrawingState> {
     state = state.copyWith(strokeWidth: width);
   }
 
-  void erase() {
-    state = state.copyWith(color: Colors.white);
-  }
-
   Future<String> saveDrawing(Uint8List bytes) async {
     return await FileSaverService.saveImage(bytes, 'drawing_${DateTime.now().millisecondsSinceEpoch}.png');
   }
@@ -70,5 +80,13 @@ class DrawingNotifier extends StateNotifier<DrawingState> {
 
   void updateScale(double newScale) {
     state = state.copyWith(scale: newScale);
+  }
+
+  void changeOpacity(double opacity) {
+    state = state.copyWith(opacity: opacity);
+  }
+
+  void changeBlendMode(BlendMode blendMode) {
+    state = state.copyWith(blendMode: blendMode);
   }
 }

@@ -1,4 +1,4 @@
-import 'package:drawing_app/core/constants/theme_provider.dart';
+import 'package:drawing_app/features/drawing/presentation/providers/drawing_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
@@ -71,17 +71,45 @@ class ToolBarWidget extends ConsumerWidget {
             ref.read(drawingProvider.notifier).changeStrokeWidth(value);
           },
         ),
-        IconButton(
-          icon: const Icon(Icons.edit),
-          onPressed: () {
-            ref.read(drawingProvider.notifier).changeColor(Colors.black);
+        Slider(
+          value: drawingState.opacity,
+          min: 0.0,
+          max: 1.0,
+          onChanged: (value) {
+            ref.read(drawingProvider.notifier).changeOpacity(value);
           },
         ),
-        IconButton(
-          icon: const Icon(Icons.square_outlined),
-          onPressed: () {
-            ref.read(drawingProvider.notifier).erase();
+        DropdownButton<BlendMode>(
+          value: drawingState.blendMode,
+          onChanged: (BlendMode? newValue) {
+            if (newValue != null) {
+              ref.read(drawingProvider.notifier).changeBlendMode(newValue);
+            }
           },
+          items: BlendMode.values.map((BlendMode blendMode) {
+            return DropdownMenuItem<BlendMode>(
+              value: blendMode,
+              child: Text(blendMode.toString().split('.').last),
+            );
+          }).toList(),
+        ),
+        ToggleButtons(
+          isSelected: [
+            drawingState.selectedTool == DrawingTool.pen,
+            drawingState.selectedTool == DrawingTool.eraser,
+          ],
+          onPressed: (int index) {
+            if (index == 0) {
+              ref.read(drawingProvider.notifier).setSelectedTool(DrawingTool.pen);
+              ref.read(drawingProvider.notifier).changeColor(Colors.black); // Reset color to black for pen
+            } else {
+              ref.read(drawingProvider.notifier).setSelectedTool(DrawingTool.eraser);
+            }
+          },
+          children: const [
+            Tooltip(message: 'Pen', child: Icon(Icons.edit)),
+            Tooltip(message: 'Eraser', child: Icon(Icons.square_outlined)),
+          ],
         ),
         IconButton(
           icon: const Icon(Icons.save),

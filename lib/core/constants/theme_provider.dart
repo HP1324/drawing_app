@@ -23,12 +23,13 @@ enum ThemeModeType {
   dark,
 }
 
-final themeProvider = StateNotifierProvider<ThemeNotifier, AppTheme>((ref) {
-  return ThemeNotifier();
-});
+final themeProvider = NotifierProvider<ThemeNotifier, AppTheme>(ThemeNotifier.new);
 
-class ThemeNotifier extends StateNotifier<AppTheme> {
-  ThemeNotifier() : super(AppTheme(mode: ThemeModeType.light));
+class ThemeNotifier extends Notifier<AppTheme> {
+  @override
+  AppTheme build() {
+    return AppTheme(mode: ThemeModeType.light);
+  }
 
   void toggleTheme() {
     state = state.copyWith(
